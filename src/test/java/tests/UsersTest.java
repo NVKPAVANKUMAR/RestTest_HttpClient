@@ -1,5 +1,7 @@
 package tests;
 
+import Entity.PutResponse;
+import Entity.Users;
 import Utils.JSONPathFinder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
@@ -7,9 +9,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -26,12 +26,13 @@ import java.util.HashMap;
 import java.util.ResourceBundle;
 
 import static Utils.JSONValueReplacer.generateData;
+import static org.testng.Assert.*;
 
 public class UsersTest {
-    public static ObjectMapper mapper = new ObjectMapper();
     public static CloseableHttpClient httpClient;
     public static ResourceBundle resourceBundle;
     public static ResponseHandler<String> responseHandler;
+    public static ObjectMapper mapper = new ObjectMapper();
 
 
     @BeforeTest
@@ -108,6 +109,22 @@ public class UsersTest {
     }
 
     @Test
+    public void test_GETCallResponse_SingleUser() throws IOException {
+        HttpGet request = new HttpGet(resourceBundle.getString("baseurl") + "/users/2");
+        request.setHeader("Content-Type", "application/json; charset=UTF-8");
+        request.setHeader("Accept", "application/json");
+        CloseableHttpResponse response = httpClient.execute(request);
+        if (response.getStatusLine().getStatusCode() == 200) {
+            responseHandler = new BasicResponseHandler();
+            String body = responseHandler.handleResponse(response);
+            Users userResponse = mapper.readValue(body, Users.class);
+            assertEquals(userResponse.getData().getId(), 2);
+        } else {
+            System.out.println("response code : " + response.getStatusLine().getStatusCode());
+        }
+    }
+
+    @Test
     public void test_POSTCallResponse() throws IOException {
         HttpPost httpPost = new HttpPost(resourceBundle.getString("baseurl") + "/users");
         httpPost.setHeader("Accept", "application/json");
@@ -119,6 +136,37 @@ public class UsersTest {
         if (response.getStatusLine().getStatusCode() == 201) {
             String body = responseHandler.handleResponse(response);
             Assert.assertNotNull(body);
+        } else {
+            System.out.println("response code : " + response.getStatusLine().getStatusCode());
+        }
+    }
+
+    @Test
+    public void test_PUTCallResponse() throws IOException {
+        HttpPut httpPut = new HttpPut(resourceBundle.getString("baseurl") + "/users/2");
+        httpPut.setHeader("Accept", "application/json");
+        httpPut.setHeader("Content-Type", "application/json; charset=utf-8");
+        String payload = generateData();
+        HttpEntity putEntity = new StringEntity(payload, "UTF-8");
+        httpPut.setEntity(putEntity);
+        CloseableHttpResponse response = httpClient.execute(httpPut);
+        if (response.getStatusLine().getStatusCode() == 200) {
+            String responseString = EntityUtils.toString(response.getEntity(), "UTF-8");
+            PutResponse putResponse = mapper.readValue(responseString, PutResponse.class);
+            assertNotNull(putResponse.getName());
+        } else {
+            System.out.println("response code : " + response.getStatusLine().getStatusCode());
+        }
+    }
+
+    @Test
+    public void test_DeleteCallResponse() throws IOException {
+        HttpDelete httpDelete = new HttpDelete(resourceBundle.getString("baseurl") + "/users/2");
+        httpDelete.setHeader("Accept", "application/json");
+        httpDelete.setHeader("Content-Type", "application/json; charset=utf-8");
+        CloseableHttpResponse response = httpClient.execute(httpDelete);
+        if (response.getStatusLine().getStatusCode() == 204) {
+            assertTrue(response.getStatusLine().toString().contains("No Content"));
         } else {
             System.out.println("response code : " + response.getStatusLine().getStatusCode());
         }
