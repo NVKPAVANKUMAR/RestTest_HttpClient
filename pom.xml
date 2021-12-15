@@ -14,7 +14,7 @@
         <aspectj.version>1.8.10</aspectj.version>
         <allure.version>1.5.2</allure.version>
         <allure-testng-version>2.13.9</allure-testng-version>
-        <log4j-version>2.14.1</log4j-version>
+        <log4j-version>2.16.0</log4j-version>
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
         <allure.report.directory>${project.build.directory}/site/allure-report</allure.report.directory>
         <allure-maven-plugin.version>2.2</allure-maven-plugin.version>
